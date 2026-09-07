@@ -11,6 +11,18 @@ export interface LayoutPlaybackFrame {
 	};
 }
 
+export interface LayoutPreviewScreenTarget {
+	alpha: number;
+}
+
+export interface LayoutPreviewWebcamStyleTarget {
+	left?: string;
+	top?: string;
+	width?: string;
+	height?: string;
+	opacity?: string;
+}
+
 function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
 }
@@ -81,4 +93,26 @@ export function createOptionalLayoutPlaybackFrame(
 		stageHeight,
 		webcamAspectRatio,
 	);
+}
+
+/**
+ * Applies the resolved frame to the two preview surfaces without depending on Pixi or DOM
+ * concrete classes. VideoPlayback can pass its Pixi container and webcam element style here.
+ */
+export function applyLayoutPlaybackFrameToPreview(
+	frame: LayoutPlaybackFrame | null,
+	screen: LayoutPreviewScreenTarget,
+	webcamStyle: LayoutPreviewWebcamStyleTarget,
+): void {
+	if (!frame) {
+		screen.alpha = 1;
+		return;
+	}
+
+	screen.alpha = frame.screenAlpha;
+	webcamStyle.left = `${frame.webcam.x}px`;
+	webcamStyle.top = `${frame.webcam.y}px`;
+	webcamStyle.width = `${frame.webcam.width}px`;
+	webcamStyle.height = `${frame.webcam.height}px`;
+	webcamStyle.opacity = `${frame.webcam.opacity}`;
 }
