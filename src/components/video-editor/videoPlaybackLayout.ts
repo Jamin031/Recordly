@@ -59,3 +59,21 @@ export function applyVideoPlaybackLayoutAtTime(
 
 	return frame;
 }
+
+/**
+ * Runtime entrypoint for VideoPlayback. It centralizes the webcam-availability
+ * fallback so an opted-in Presenter timeline can never blank the screen when
+ * the webcam source is disabled, missing, or not renderable.
+ */
+export function applyRenderableVideoPlaybackLayoutAtTime(
+	timeMs: number,
+	layoutEvents: LayoutEvent[] | undefined,
+	webcamAvailable: boolean,
+	targets: VideoPlaybackLayoutTargets,
+): LayoutPlaybackFrame | null {
+	return applyVideoPlaybackLayoutAtTime(
+		timeMs,
+		getRenderableLayoutEvents(layoutEvents, webcamAvailable),
+		targets,
+	);
+}
