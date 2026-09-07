@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+	applyLayoutPlaybackFrameToPreview,
 	createLayoutPlaybackFrame,
 	createOptionalLayoutPlaybackFrame,
 } from "./layoutPlaybackBridge";
@@ -61,5 +62,29 @@ describe("createOptionalLayoutPlaybackFrame", () => {
 		expect(frame?.screenAlpha).toBe(0);
 		expect(frame?.webcam.width).toBe(1280);
 		expect(frame?.webcam.height).toBe(720);
+	});
+});
+
+describe("applyLayoutPlaybackFrameToPreview", () => {
+	it("writes screen alpha and webcam geometry to preview targets", () => {
+		const screen = { alpha: 1 };
+		const webcamStyle: Record<string, string> = {};
+		const frame = createLayoutPlaybackFrame(2000, [event], 1280, 720, 16 / 9);
+
+		applyLayoutPlaybackFrameToPreview(frame, screen, webcamStyle);
+
+		expect(screen.alpha).toBe(1);
+		expect(webcamStyle.left).toBe(`${frame.webcam.x}px`);
+		expect(webcamStyle.top).toBe(`${frame.webcam.y}px`);
+		expect(webcamStyle.width).toBe(`${frame.webcam.width}px`);
+		expect(webcamStyle.height).toBe(`${frame.webcam.height}px`);
+		expect(webcamStyle.opacity).toBe("1");
+	});
+
+	it("restores legacy screen alpha when no layout frame is active", () => {
+		const screen = { alpha: 0 };
+		const webcamStyle: Record<string, string> = {};
+		applyLayoutPlaybackFrameToPreview(null, screen, webcamStyle);
+		expect(screen.alpha).toBe(1);
 	});
 });
