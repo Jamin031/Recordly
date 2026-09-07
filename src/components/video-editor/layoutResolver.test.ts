@@ -1,22 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_LAYOUT_PRESET, resolveLayoutAtTime } from "./layoutResolver";
-import type { LayoutEvent } from "./types";
+import {
+	DEFAULT_LAYOUT_PRESET,
+	resolveLayoutAtTime,
+	type LayoutEvent,
+} from "./layoutResolver";
 
 const events: LayoutEvent[] = [
-	{
-		id: "screen",
-		timeMs: 1000,
-		targetMode: "screen-pip",
-		source: "click",
-		transitionDurationMs: 600,
-	},
-	{
-		id: "presenter",
-		timeMs: 3000,
-		targetMode: "presenter",
-		source: "shortcut",
-		transitionDurationMs: 600,
-	},
+	{ id: "screen", timeMs: 1000, targetMode: "screen-pip", source: "click", transitionDurationMs: 600 },
+	{ id: "presenter", timeMs: 3000, targetMode: "presenter", source: "shortcut", transitionDurationMs: 600 },
 ];
 
 describe("resolveLayoutAtTime", () => {
@@ -55,13 +46,7 @@ describe("resolveLayoutAtTime", () => {
 	it("ignores duplicate events that target the current mode", () => {
 		const duplicateEvents: LayoutEvent[] = [
 			...events,
-			{
-				id: "duplicate-screen-click",
-				timeMs: 1800,
-				targetMode: "screen-pip",
-				source: "click",
-				transitionDurationMs: 600,
-			},
+			{ id: "duplicate-screen-click", timeMs: 1800, targetMode: "screen-pip", source: "click", transitionDurationMs: 600 },
 		];
 		const state = resolveLayoutAtTime(1900, duplicateEvents);
 		expect(state.mode).toBe("screen-pip");
