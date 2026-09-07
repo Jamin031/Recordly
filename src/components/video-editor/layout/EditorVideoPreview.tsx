@@ -67,8 +67,6 @@ export function EditorVideoPreview({
 	setError,
 	handlers,
 }: Props) {
-	void layoutEvents;
-
 	return (
 		<VideoPlayback
 			key={`${videoPath || "no-video"}:${previewVersion}:inline`}
@@ -104,6 +102,7 @@ export function EditorVideoPreview({
 			webcamVideoPath={
 				appearance.webcam.sourcePath ? appearance.resolvedWebcamVideoUrl : null
 			}
+			layoutEvents={layoutEvents}
 			trimRegions={timeline.trimRegions}
 			speedRegions={effectiveSpeedRegions}
 			annotationRegions={timeline.annotationRegions}
