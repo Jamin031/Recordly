@@ -107,10 +107,10 @@ describe("applyRenderableVideoPlaybackLayoutAtTime", () => {
 		expect(cursor.alpha).toBe(0);
 	});
 
-	it("forces legacy screen and cursor visibility when webcam is unavailable", () => {
+	it("forces legacy screen, cursor, and webcam visibility when webcam is unavailable", () => {
 		const screen = { alpha: 0 };
 		const cursor = { alpha: 0 };
-		const webcamStyle: Record<string, string | undefined> = {};
+		const webcamStyle: Record<string, string | undefined> = { opacity: "0" };
 
 		const frame = applyRenderableVideoPlaybackLayoutAtTime(0, [], false, {
 			screen,
@@ -123,5 +123,6 @@ describe("applyRenderableVideoPlaybackLayoutAtTime", () => {
 		expect(frame).toBeNull();
 		expect(screen.alpha).toBe(1);
 		expect(cursor.alpha).toBe(1);
+		expect(webcamStyle.opacity).toBe("1");
 	});
 });
