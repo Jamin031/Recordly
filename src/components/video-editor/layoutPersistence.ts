@@ -1,68 +1,59 @@
 import {
-  DEFAULT_LAYOUT_TRANSITION_DURATION_MS,
-  type LayoutEvent,
-  type LayoutEventSource,
-  type LayoutMode,
-  type LayoutTransitionEasing,
+	DEFAULT_LAYOUT_TRANSITION_DURATION_MS,
+	type LayoutEasing,
+	type LayoutEvent,
+	type LayoutEventSource,
+	type LayoutMode,
 } from "./layoutTransitions";
 
-const LAYOUT_MODES = new Set<LayoutMode>(["presenter", "screen-pip"]);
-const LAYOUT_SOURCES = new Set<LayoutEventSource>(["click", "shortcut", "manual"]);
-const LAYOUT_EASINGS = new Set<LayoutTransitionEasing>([
-  "recordly",
-  "smooth",
-  "snappy",
-  "linear",
-]);
+function isFiniteNumber(value: unknown): value is number {
+	return typeof value === "number" && Number.isFinite(value);
+}
 
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+function clamp(value: number, min: number, max: number): number {
+	return Math.min(max, Math.max(min, value));
+}
+
+function isLayoutMode(value: unknown): value is LayoutMode {
+	return value === "presenter" || value === "screen-pip";
+}
+
+function isLayoutEventSource(value: unknown): value is LayoutEventSource {
+	return value === "click" || value === "hotkey" || value === "manual";
+}
+
+function normalizeLayoutEasing(value: unknown): LayoutEasing {
+	return value === "linear" ? "linear" : "smooth";
+}
 
 export function normalizePersistedLayoutEvents(value: unknown): LayoutEvent[] {
-  if (!Array.isArray(value)) return [];
+	if (!Array.isArray(value)) return [];
 
-  const normalized: LayoutEvent[] = [];
-
-  for (const candidate of value) {
-    if (!candidate || typeof candidate !== "object") continue;
-
-    const raw = candidate as Record<string, unknown>;
-    if (typeof raw.id !== "string" || raw.id.length === 0) continue;
-    if (!LAYOUT_MODES.has(raw.targetMode as LayoutMode)) continue;
-    if (!LAYOUT_SOURCES.has(raw.source as LayoutEventSource)) continue;
-
-    const timeMs = typeof raw.timeMs === "number" && Number.isFinite(raw.timeMs)
-      ? Math.max(0, raw.timeMs)
-      : 0;
-    const transitionDurationMs =
-      typeof raw.transitionDurationMs === "number" &&
-      Number.isFinite(raw.transitionDurationMs) &&
-      raw.transitionDurationMs >= 0
-        ? raw.transitionDurationMs
-        : DEFAULT_LAYOUT_TRANSITION_DURATION_MS;
-
-    const event: LayoutEvent = {
-      id: raw.id,
-      timeMs,
-      targetMode: raw.targetMode as LayoutMode,
-      source: raw.source as LayoutEventSource,
-      transitionDurationMs,
-    };
-
-    if (LAYOUT_EASINGS.has(raw.easing as LayoutTransitionEasing)) {
-      event.easing = raw.easing as LayoutTransitionEasing;
-    }
-    if (typeof raw.webcamPositionX === "number" && Number.isFinite(raw.webcamPositionX)) {
-      event.webcamPositionX = clamp01(raw.webcamPositionX);
-    }
-    if (typeof raw.webcamPositionY === "number" && Number.isFinite(raw.webcamPositionY)) {
-      event.webcamPositionY = clamp01(raw.webcamPositionY);
-    }
-    if (typeof raw.webcamScale === "number" && Number.isFinite(raw.webcamScale)) {
-      event.webcamScale = clamp01(raw.webcamScale);
-    }
-
-    normalized.push(event);
-  }
-
-  return normalized.sort((a, b) => a.timeMs - b.timeMs);
+	return value
+		.filter((candidate): candidate is Record<string, unknown> => {
+			if (!candidate || typeof candidate !== "object") return false;
+			return (
+				typeof candidate.id === "string" &&
+				candidate.id.trim().length > 0 &&
+				isFiniteNumber(candidate.timeMs) &&
+				isLayoutMode(candidate.mode) &&
+				isLayoutEventSource(candidate.source)
+			);
+		})
+		.map((candidate) => ({
+			id: candidate.id as string,
+			timeMs: Math.max(0, Math.round(candidate.timeMs as number)),
+			mode: candidate.mode as LayoutMode,
+			source: candidate.source as LayoutEventSource,
+			transitionDurationMs: isFiniteNumber(candidate.transitionDurationMs)
+				? clamp(Math.round(candidate.transitionDurationMs), 0, 4000)
+				: DEFAULT_LAYOUT_TRANSITION_DURATION_MS,
+			easing: normalizeLayoutEasing(candidate.easing),
+			...(isFiniteNumber(candidate.cameraScale)
+				? { cameraScale: clamp(candidate.cameraScale, 0.1, 1) }
+				: {}),
+			...(isFiniteNumber(candidate.cameraX) ? { cameraX: clamp(candidate.cameraX, 0, 1) } : {}),
+			...(isFiniteNumber(candidate.cameraY) ? { cameraY: clamp(candidate.cameraY, 0, 1) } : {}),
+		}))
+		.sort((a, b) => a.timeMs - b.timeMs);
 }
