@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { withNormalizedLayoutEvents } from "./projectEditorLayout";
+import {
+	withNormalizedLayoutEvents,
+	withPersistedLayoutEvents,
+} from "./projectEditorLayout";
 
 describe("project editor layout adapter", () => {
 	it("keeps layout events absent for legacy editor state", () => {
@@ -41,8 +44,25 @@ describe("project editor layout adapter", () => {
 		expect(result.layoutEvents?.[0]).toMatchObject({
 			id: "screen-1",
 			mode: "screen-pip",
-			 source: "click",
+			source: "click",
 		});
 		expect(normalizedEditor).toEqual({ marker: "normalized" });
+	});
+});
+
+describe("persisted project layout adapter", () => {
+	it("does not synthesize layoutEvents for legacy projects", () => {
+		const editor = { marker: "persisted" } as never;
+		const result = withPersistedLayoutEvents(editor, undefined);
+
+		expect(Object.prototype.hasOwnProperty.call(result, "layoutEvents")).toBe(false);
+	});
+
+	it("persists an explicit empty layout timeline as Presenter opt-in", () => {
+		const editor = { marker: "persisted" } as never;
+		const result = withPersistedLayoutEvents(editor, []);
+
+		expect(result.layoutEvents).toEqual([]);
+		expect(Object.prototype.hasOwnProperty.call(result, "layoutEvents")).toBe(true);
 	});
 });
