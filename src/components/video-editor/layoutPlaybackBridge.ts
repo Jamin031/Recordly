@@ -11,27 +11,46 @@ export interface LayoutPlaybackFrame {
 	};
 }
 
+function clamp(value: number, min: number, max: number): number {
+	return Math.min(max, Math.max(min, value));
+}
+
 /**
  * Converts an editable layout timeline into renderer-ready pixel geometry.
  * Preview and export should both consume this function so their framing stays identical.
+ *
+ * `webcamAspectRatio` is the effective cropped webcam width / height ratio. Presenter
+ * mode intentionally fills the composition; PIP mode preserves the webcam crop ratio.
  */
 export function createLayoutPlaybackFrame(
 	timeMs: number,
 	events: LayoutEvent[],
 	stageWidth: number,
 	stageHeight: number,
+	webcamAspectRatio?: number,
 ): LayoutPlaybackFrame {
 	const state = resolveLayoutAtTime(timeMs, events);
-	const width = Math.max(0, stageWidth * state.cameraScale);
-	const height = Math.max(0, stageHeight * state.cameraScale);
-	const centerX = stageWidth * state.cameraX;
-	const centerY = stageHeight * state.cameraY;
+	const safeStageWidth = Math.max(0, stageWidth);
+	const safeStageHeight = Math.max(0, stageHeight);
+	const width = Math.max(0, safeStageWidth * state.cameraScale);
+	const useNativeAspect =
+		state.cameraScale < 0.999 &&
+		typeof webcamAspectRatio === "number" &&
+		Number.isFinite(webcamAspectRatio) &&
+		webcamAspectRatio > 0;
+	const height = useNativeAspect
+		? Math.min(safeStageHeight, width / webcamAspectRatio)
+		: Math.max(0, safeStageHeight * state.cameraScale);
+	const centerX = safeStageWidth * state.cameraX;
+	const centerY = safeStageHeight * state.cameraY;
+	const x = clamp(centerX - width / 2, 0, Math.max(0, safeStageWidth - width));
+	const y = clamp(centerY - height / 2, 0, Math.max(0, safeStageHeight - height));
 
 	return {
 		screenAlpha: state.screenOpacity,
 		webcam: {
-			x: centerX - width / 2,
-			y: centerY - height / 2,
+			x,
+			y,
 			width,
 			height,
 			opacity: state.cameraOpacity,
