@@ -1,46 +1,72 @@
 import { describe, expect, it } from "vitest";
-import { normalizeProjectEditor } from "./projectPersistence";
+import { normalizePersistedLayoutEvents } from "./layoutPersistence";
 
-const baseEditor = {
-  zoomRegions: [],
-  trimRegions: [],
-  clipRegions: [],
-  speedRegions: [],
-  annotationRegions: [],
-  audioRegions: [],
-};
+describe("layout event persistence", () => {
+	it("defaults old projects to no layout events", () => {
+		expect(normalizePersistedLayoutEvents(undefined)).toEqual([]);
+	});
 
-describe("project layout event persistence", () => {
-  it("defaults old projects to no layout events", () => {
-    const normalized = normalizeProjectEditor(baseEditor as never);
-    expect(normalized.layoutEvents).toEqual([]);
-  });
+	it("normalizes and sorts persisted layout events", () => {
+		const normalized = normalizePersistedLayoutEvents([
+			{
+				id: "presenter-1",
+				timeMs: 4000,
+				mode: "presenter",
+				source: "hotkey",
+				transitionDurationMs: 600,
+			},
+			{
+				id: "screen-1",
+				timeMs: 1500,
+				mode: "screen-pip",
+				source: "click",
+				transitionDurationMs: 600,
+				easing: "smooth",
+				cameraX: 0.86,
+				cameraY: 0.82,
+				cameraScale: 0.26,
+			},
+		]);
 
-  it("normalizes persisted layout events", () => {
-    const normalized = normalizeProjectEditor({
-      ...baseEditor,
-      layoutEvents: [
-        { id: "screen-1", timeMs: 1500, targetMode: "screen-pip", source: "click", transitionDurationMs: 600, easing: "recordly", webcamPositionX: 0.86, webcamPositionY: 0.82, webcamScale: 0.26 },
-        { id: "presenter-1", timeMs: 4000, targetMode: "presenter", source: "shortcut", transitionDurationMs: 600 },
-      ],
-    } as never);
+		expect(normalized).toHaveLength(2);
+		expect(normalized[0]).toMatchObject({
+			id: "screen-1",
+			mode: "screen-pip",
+			source: "click",
+			cameraScale: 0.26,
+		});
+		expect(normalized[1]).toMatchObject({
+			id: "presenter-1",
+			mode: "presenter",
+			source: "hotkey",
+		});
+	});
 
-    expect(normalized.layoutEvents).toHaveLength(2);
-    expect(normalized.layoutEvents[0]).toMatchObject({ id: "screen-1", targetMode: "screen-pip", source: "click" });
-    expect(normalized.layoutEvents[1]).toMatchObject({ id: "presenter-1", targetMode: "presenter", source: "shortcut" });
-  });
+	it("drops malformed events and clamps editable geometry", () => {
+		const normalized = normalizePersistedLayoutEvents([
+			null,
+			{ id: "bad-mode", timeMs: 1000, mode: "focus", source: "click" },
+			{
+				id: "good",
+				timeMs: -200,
+				mode: "screen-pip",
+				source: "manual",
+				transitionDurationMs: 9000,
+				cameraScale: 2,
+				cameraX: -1,
+				cameraY: 3,
+			},
+		]);
 
-  it("drops malformed persisted layout events", () => {
-    const normalized = normalizeProjectEditor({
-      ...baseEditor,
-      layoutEvents: [
-        null,
-        { id: "bad-mode", timeMs: 1000, targetMode: "focus", source: "click" },
-        { id: "good", timeMs: 2000, targetMode: "screen-pip", source: "click", transitionDurationMs: 600 },
-      ],
-    } as never);
-
-    expect(normalized.layoutEvents).toHaveLength(1);
-    expect(normalized.layoutEvents[0].id).toBe("good");
-  });
+		expect(normalized).toHaveLength(1);
+		expect(normalized[0]).toMatchObject({
+			id: "good",
+			timeMs: 0,
+			transitionDurationMs: 4000,
+			cameraScale: 1,
+			cameraX: 0,
+			cameraY: 1,
+			easing: "smooth",
+		});
+	});
 });
