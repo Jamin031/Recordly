@@ -57,6 +57,10 @@ export function applyVideoPlaybackLayoutAtTime(
 		targets.cursor.alpha = frame?.screenAlpha ?? 1;
 	}
 
+	if (!frame) {
+		targets.webcamStyle.opacity = "1";
+	}
+
 	return frame;
 }
 
