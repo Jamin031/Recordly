@@ -25,3 +25,22 @@ export function withNormalizedLayoutEvents(
 		layoutEvents: normalizePersistedLayoutEvents(editor.layoutEvents),
 	};
 }
+
+/**
+ * Add the layout timeline to a persisted editor snapshot without changing
+ * legacy semantics. Undefined means the feature is disabled and the field
+ * must stay absent; an explicit empty array is a meaningful Presenter opt-in.
+ */
+export function withPersistedLayoutEvents<T extends object>(
+	editor: T,
+	layoutEvents: LayoutEvent[] | undefined,
+): T & { layoutEvents?: LayoutEvent[] } {
+	if (layoutEvents === undefined) {
+		return { ...editor };
+	}
+
+	return {
+		...editor,
+		layoutEvents: normalizePersistedLayoutEvents(layoutEvents),
+	};
+}
