@@ -17,6 +17,22 @@ export interface VideoPlaybackLayoutTargets {
 }
 
 /**
+ * Presenter mode requires a usable webcam. If the project is legacy or the
+ * webcam is unavailable, keep the layout timeline disabled so the screen
+ * remains visible instead of producing a blank preview.
+ */
+export function getRenderableLayoutEvents(
+	layoutEvents: LayoutEvent[] | undefined,
+	webcamAvailable: boolean,
+): LayoutEvent[] | undefined {
+	if (layoutEvents === undefined || !webcamAvailable) {
+		return undefined;
+	}
+
+	return layoutEvents;
+}
+
+/**
  * Small integration boundary used by VideoPlayback's render ticker.
  * Recordly's currentTimeRef is already milliseconds, so no time conversion belongs here.
  */
