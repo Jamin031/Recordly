@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LayoutEvent } from "./layoutTransitions";
 import {
+	applyRenderableVideoPlaybackLayoutAtTime,
 	applyVideoPlaybackLayoutAtTime,
 	getRenderableLayoutEvents,
 } from "./videoPlaybackLayout";
@@ -83,5 +84,44 @@ describe("applyVideoPlaybackLayoutAtTime", () => {
 		expect(frame?.screenAlpha).toBe(0);
 		expect(screen.alpha).toBe(0);
 		expect(cursor.alpha).toBe(0);
+	});
+});
+
+describe("applyRenderableVideoPlaybackLayoutAtTime", () => {
+	it("preserves explicit empty timeline semantics when webcam is available", () => {
+		const screen = { alpha: 1 };
+		const cursor = { alpha: 1 };
+		const webcamStyle: Record<string, string | undefined> = {};
+
+		const frame = applyRenderableVideoPlaybackLayoutAtTime(0, [], true, {
+			screen,
+			cursor,
+			webcamStyle,
+			stageWidth: 1280,
+			stageHeight: 720,
+			webcamAspectRatio: 16 / 9,
+		});
+
+		expect(frame?.screenAlpha).toBe(0);
+		expect(screen.alpha).toBe(0);
+		expect(cursor.alpha).toBe(0);
+	});
+
+	it("forces legacy screen and cursor visibility when webcam is unavailable", () => {
+		const screen = { alpha: 0 };
+		const cursor = { alpha: 0 };
+		const webcamStyle: Record<string, string | undefined> = {};
+
+		const frame = applyRenderableVideoPlaybackLayoutAtTime(0, [], false, {
+			screen,
+			cursor,
+			webcamStyle,
+			stageWidth: 1280,
+			stageHeight: 720,
+		});
+
+		expect(frame).toBeNull();
+		expect(screen.alpha).toBe(1);
+		expect(cursor.alpha).toBe(1);
 	});
 });
