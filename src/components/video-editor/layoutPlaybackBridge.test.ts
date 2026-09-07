@@ -26,4 +26,23 @@ describe("createLayoutPlaybackFrame", () => {
 		expect(frame.webcam.x).toBeGreaterThan(640);
 		expect(frame.webcam.y).toBeGreaterThan(360);
 	});
+
+	it("preserves the webcam crop aspect ratio while shrinking to PIP", () => {
+		const frame = createLayoutPlaybackFrame(2000, [event], 1280, 720, 4 / 3);
+		expect(frame.webcam.width / frame.webcam.height).toBeCloseTo(4 / 3, 5);
+	});
+
+	it("clamps PIP geometry inside the stage", () => {
+		const customEvent: LayoutEvent = {
+			...event,
+			cameraScale: 0.4,
+			cameraX: 1,
+			cameraY: 1,
+		};
+		const frame = createLayoutPlaybackFrame(2000, [customEvent], 1280, 720, 16 / 9);
+		expect(frame.webcam.x).toBeGreaterThanOrEqual(0);
+		expect(frame.webcam.y).toBeGreaterThanOrEqual(0);
+		expect(frame.webcam.x + frame.webcam.width).toBeLessThanOrEqual(1280);
+		expect(frame.webcam.y + frame.webcam.height).toBeLessThanOrEqual(720);
+	});
 });
