@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { SourceAudioTrackSettings } from "../audio/audioTypes";
+import type { LayoutEvent } from "../layoutTransitions";
 import type {
 	AnnotationRegion,
 	AudioRegion,
@@ -27,6 +28,7 @@ export function useTimelineState() {
 	const [audioRegions, setAudioRegions] = useState<AudioRegion[]>([]);
 	const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
 	const [selectedCaptionId, setSelectedCaptionId] = useState<string | null>(null);
+	const [layoutEvents, setLayoutEvents] = useState<LayoutEvent[] | undefined>(undefined);
 	const [sourceAudioTrackSettingsByClip, setSourceAudioTrackSettingsByClip] = useState<
 		Record<string, SourceAudioTrackSettings>
 	>({});
@@ -66,6 +68,8 @@ export function useTimelineState() {
 		setSelectedAudioId,
 		selectedCaptionId,
 		setSelectedCaptionId,
+		layoutEvents,
+		setLayoutEvents,
 		sourceAudioTrackSettingsByClip,
 		setSourceAudioTrackSettingsByClip,
 		defaultSourceAudioTrackSettings,
