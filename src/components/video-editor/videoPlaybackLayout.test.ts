@@ -12,11 +12,11 @@ const enterScreen: LayoutEvent = {
 };
 
 describe("applyVideoPlaybackLayoutAtTime", () => {
-	it("leaves legacy preview screen visible when layout timeline is omitted", () => {
+	it("leaves legacy preview screen visible and returns null when layout timeline is omitted", () => {
 		const screen = { alpha: 0 };
 		const webcamStyle: Record<string, string | undefined> = {};
 
-		applyVideoPlaybackLayoutAtTime(0, undefined, {
+		const frame = applyVideoPlaybackLayoutAtTime(0, undefined, {
 			screen,
 			webcamStyle,
 			stageWidth: 1280,
@@ -24,22 +24,47 @@ describe("applyVideoPlaybackLayoutAtTime", () => {
 		});
 
 		expect(screen.alpha).toBe(1);
+		expect(frame).toBeNull();
 	});
 
-	it("uses millisecond timeline time directly for the click transition", () => {
+	it("uses millisecond timeline time directly for the click transition and returns the applied frame", () => {
 		const screen = { alpha: 1 };
+		const cursor = { alpha: 1 };
 		const webcamStyle: Record<string, string | undefined> = {};
 
-		applyVideoPlaybackLayoutAtTime(2000, [enterScreen], {
+		const frame = applyVideoPlaybackLayoutAtTime(2000, [enterScreen], {
 			screen,
+			cursor,
 			webcamStyle,
 			stageWidth: 1280,
 			stageHeight: 720,
 			webcamAspectRatio: 16 / 9,
 		});
 
+		expect(frame).not.toBeNull();
+		expect(frame?.screenAlpha).toBe(1);
 		expect(screen.alpha).toBe(1);
+		expect(cursor.alpha).toBe(1);
 		expect(Number.parseFloat(webcamStyle.width ?? "0")).toBeLessThan(1280);
 		expect(Number.parseFloat(webcamStyle.left ?? "0")).toBeGreaterThan(640);
+	});
+
+	it("keeps the separate cursor hidden with the screen in initial Presenter mode", () => {
+		const screen = { alpha: 1 };
+		const cursor = { alpha: 1 };
+		const webcamStyle: Record<string, string | undefined> = {};
+
+		const frame = applyVideoPlaybackLayoutAtTime(0, [], {
+			screen,
+			cursor,
+			webcamStyle,
+			stageWidth: 1280,
+			stageHeight: 720,
+			webcamAspectRatio: 16 / 9,
+		});
+
+		expect(frame?.screenAlpha).toBe(0);
+		expect(screen.alpha).toBe(0);
+		expect(cursor.alpha).toBe(0);
 	});
 });
