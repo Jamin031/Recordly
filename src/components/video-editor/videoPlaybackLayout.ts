@@ -1,6 +1,7 @@
 import {
 	applyLayoutPlaybackFrameToPreview,
 	createOptionalLayoutPlaybackFrame,
+	type LayoutPlaybackFrame,
 	type LayoutPreviewScreenTarget,
 	type LayoutPreviewWebcamStyleTarget,
 } from "./layoutPlaybackBridge";
@@ -23,7 +24,7 @@ export function applyVideoPlaybackLayoutAtTime(
 	timeMs: number,
 	layoutEvents: LayoutEvent[] | undefined,
 	targets: VideoPlaybackLayoutTargets,
-): void {
+): LayoutPlaybackFrame | null {
 	const frame = createOptionalLayoutPlaybackFrame(
 		timeMs,
 		layoutEvents,
@@ -39,4 +40,6 @@ export function applyVideoPlaybackLayoutAtTime(
 	if (targets.cursor) {
 		targets.cursor.alpha = frame?.screenAlpha ?? 1;
 	}
+
+	return frame;
 }
