@@ -2,7 +2,6 @@ import type { ComponentProps, Dispatch, RefObject, SetStateAction } from "react"
 import type { AspectRatio } from "@/utils/aspectRatioUtils";
 import type { useVideoEditorAudio } from "../audio/useVideoEditorAudio";
 import { LayoutVideoPlayback } from "../LayoutVideoPlayback";
-import type { LayoutEvent } from "../layoutTransitions";
 import type { useAppearanceState } from "../state/useAppearanceState";
 import type { useTimelineState } from "../state/useTimelineState";
 import type { CursorTelemetryPoint, SpeedRegion, ZoomRegion } from "../types";
@@ -28,7 +27,6 @@ type Props = {
 	isPlaying: boolean;
 	previewVolume: number;
 	suspendRendering: boolean;
-	layoutEvents?: LayoutEvent[];
 	appearance: ReturnType<typeof useAppearanceState>;
 	timeline: ReturnType<typeof useTimelineState>;
 	audio: ReturnType<typeof useVideoEditorAudio>;
@@ -53,7 +51,6 @@ export function EditorVideoPreview({
 	isPlaying,
 	previewVolume,
 	suspendRendering,
-	layoutEvents,
 	appearance,
 	timeline,
 	audio,
@@ -103,7 +100,7 @@ export function EditorVideoPreview({
 			webcamVideoPath={
 				appearance.webcam.sourcePath ? appearance.resolvedWebcamVideoUrl : null
 			}
-			layoutEvents={layoutEvents}
+			layoutEvents={timeline.layoutEvents}
 			trimRegions={timeline.trimRegions}
 			speedRegions={effectiveSpeedRegions}
 			annotationRegions={timeline.annotationRegions}
