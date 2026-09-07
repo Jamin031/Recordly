@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { LayoutEvent } from "./layoutTransitions";
-import { applyVideoPlaybackLayoutAtTime } from "./videoPlaybackLayout";
+import {
+	applyVideoPlaybackLayoutAtTime,
+	getRenderableLayoutEvents,
+} from "./videoPlaybackLayout";
 
 const enterScreen: LayoutEvent = {
 	id: "screen",
@@ -10,6 +13,20 @@ const enterScreen: LayoutEvent = {
 	transitionDurationMs: 650,
 	easing: "smooth",
 };
+
+describe("getRenderableLayoutEvents", () => {
+	it("keeps layout disabled when the project has no layout timeline", () => {
+		expect(getRenderableLayoutEvents(undefined, true)).toBeUndefined();
+	});
+
+	it("keeps an explicit empty layout timeline enabled when webcam is available", () => {
+		expect(getRenderableLayoutEvents([], true)).toEqual([]);
+	});
+
+	it("falls back to legacy screen rendering when webcam is unavailable", () => {
+		expect(getRenderableLayoutEvents([enterScreen], false)).toBeUndefined();
+	});
+});
 
 describe("applyVideoPlaybackLayoutAtTime", () => {
 	it("leaves legacy preview screen visible and returns null when layout timeline is omitted", () => {
