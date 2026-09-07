@@ -57,3 +57,28 @@ export function createLayoutPlaybackFrame(
 		},
 	};
 }
+
+/**
+ * Preview/export integration uses `undefined` as the compatibility boundary:
+ * legacy projects that do not provide a layout timeline keep their existing renderer,
+ * while an explicitly provided timeline (including an empty one) enables presenter mode.
+ */
+export function createOptionalLayoutPlaybackFrame(
+	timeMs: number,
+	events: LayoutEvent[] | undefined,
+	stageWidth: number,
+	stageHeight: number,
+	webcamAspectRatio?: number,
+): LayoutPlaybackFrame | null {
+	if (events === undefined) {
+		return null;
+	}
+
+	return createLayoutPlaybackFrame(
+		timeMs,
+		events,
+		stageWidth,
+		stageHeight,
+		webcamAspectRatio,
+	);
+}
