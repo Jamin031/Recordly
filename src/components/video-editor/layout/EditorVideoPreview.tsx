@@ -1,13 +1,14 @@
 import type { ComponentProps, Dispatch, RefObject, SetStateAction } from "react";
 import type { AspectRatio } from "@/utils/aspectRatioUtils";
 import type { useVideoEditorAudio } from "../audio/useVideoEditorAudio";
+import { LayoutVideoPlayback } from "../LayoutVideoPlayback";
 import type { LayoutEvent } from "../layoutTransitions";
 import type { useAppearanceState } from "../state/useAppearanceState";
 import type { useTimelineState } from "../state/useTimelineState";
 import type { CursorTelemetryPoint, SpeedRegion, ZoomRegion } from "../types";
-import VideoPlayback, { type VideoPlaybackRef } from "../VideoPlayback";
+import type { VideoPlaybackRef } from "../VideoPlayback";
 
-type PlaybackProps = ComponentProps<typeof VideoPlayback>;
+type PlaybackProps = ComponentProps<typeof LayoutVideoPlayback>;
 type Handlers = Pick<
 	PlaybackProps,
 	| "onSelectZoom"
@@ -68,7 +69,7 @@ export function EditorVideoPreview({
 	handlers,
 }: Props) {
 	return (
-		<VideoPlayback
+		<LayoutVideoPlayback
 			key={`${videoPath || "no-video"}:${previewVersion}:inline`}
 			aspectRatio={aspectRatio}
 			ref={playbackRef}
