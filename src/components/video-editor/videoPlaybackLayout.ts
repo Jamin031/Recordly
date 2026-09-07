@@ -8,6 +8,7 @@ import type { LayoutEvent } from "./layoutTransitions";
 
 export interface VideoPlaybackLayoutTargets {
 	screen: LayoutPreviewScreenTarget;
+	cursor?: LayoutPreviewScreenTarget | null;
 	webcamStyle: LayoutPreviewWebcamStyleTarget;
 	stageWidth: number;
 	stageHeight: number;
@@ -32,4 +33,10 @@ export function applyVideoPlaybackLayoutAtTime(
 	);
 
 	applyLayoutPlaybackFrameToPreview(frame, targets.screen, targets.webcamStyle);
+
+	// The cursor lives outside videoEffectsContainer in VideoPlayback's Pixi scene.
+	// Keep it in lockstep with the screen so Presenter mode cannot leave a floating cursor.
+	if (targets.cursor) {
+		targets.cursor.alpha = frame?.screenAlpha ?? 1;
+	}
 }
