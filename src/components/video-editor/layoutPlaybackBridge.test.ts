@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createLayoutPlaybackFrame } from "./layoutPlaybackBridge";
+import {
+	createLayoutPlaybackFrame,
+	createOptionalLayoutPlaybackFrame,
+} from "./layoutPlaybackBridge";
 import type { LayoutEvent } from "./layoutTransitions";
 
 const event: LayoutEvent = {
@@ -44,5 +47,19 @@ describe("createLayoutPlaybackFrame", () => {
 		expect(frame.webcam.y).toBeGreaterThanOrEqual(0);
 		expect(frame.webcam.x + frame.webcam.width).toBeLessThanOrEqual(1280);
 		expect(frame.webcam.y + frame.webcam.height).toBeLessThanOrEqual(720);
+	});
+});
+
+describe("createOptionalLayoutPlaybackFrame", () => {
+	it("keeps legacy preview rendering untouched when layout events are omitted", () => {
+		expect(createOptionalLayoutPlaybackFrame(0, undefined, 1280, 720)).toBeNull();
+	});
+
+	it("treats an explicitly empty layout timeline as presenter mode", () => {
+		const frame = createOptionalLayoutPlaybackFrame(0, [], 1280, 720);
+		expect(frame).not.toBeNull();
+		expect(frame?.screenAlpha).toBe(0);
+		expect(frame?.webcam.width).toBe(1280);
+		expect(frame?.webcam.height).toBe(720);
 	});
 });
