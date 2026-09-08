@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import type { AspectRatio } from "@/utils/aspectRatioUtils";
 import type { useExportSettings } from "../export/useExportSettings";
 import type { UnsavedChangesDecision } from "../layout/EditorDialogs";
+import { withNormalizedLayoutEvents, withPersistedLayoutEvents } from "../projectEditorLayout";
 import {
 	createProjectData,
 	deriveNextId,
@@ -86,7 +87,7 @@ export function useProjectLifecycle(input: Input) {
 		const loadedProject = candidate;
 		const sourcePath = fromFileUrl(loadedProject.videoPath);
 		const persistedEditor = stripPersistedDevMotionBlurSettings(loadedProject.editor ?? {});
-		const editor = normalizeProjectEditor({
+		const normalizedEditor = normalizeProjectEditor({
 			...persistedEditor,
 			borderRadius:
 				loadedProject.version < 2 && typeof persistedEditor.borderRadius === "number"
@@ -95,6 +96,7 @@ export function useProjectLifecycle(input: Input) {
 						: legacyBorderRadiusPixelsToPercent(persistedEditor.borderRadius)
 					: persistedEditor.borderRadius,
 		});
+		const editor = withNormalizedLayoutEvents(persistedEditor, normalizedEditor);
 		try {
 			current.videoPlaybackRef.current?.pause();
 		} catch {
@@ -178,6 +180,7 @@ export function useProjectLifecycle(input: Input) {
 		timeline.setSpeedRegions(editor.speedRegions);
 		timeline.setAnnotationRegions(editor.annotationRegions);
 		timeline.setAudioRegions(editor.audioRegions);
+		timeline.setLayoutEvents(editor.layoutEvents);
 		timeline.setSourceAudioTrackSettingsByClip(editor.sourceAudioTrackSettingsByClip ?? {});
 		timeline.setDefaultSourceAudioTrackSettings(editor.defaultSourceAudioTrackSettings ?? {});
 		timeline.setAutoCaptions(editor.autoCaptions);
@@ -219,7 +222,10 @@ export function useProjectLifecycle(input: Input) {
 			cloneStructured(
 				createProjectData(
 					sourcePath,
-					current.buildPersistedEditorState(editor),
+					withPersistedLayoutEvents(
+						current.buildPersistedEditorState(editor),
+						editor.layoutEvents,
+					),
 					loadedProject.projectId ?? null,
 				),
 			),
@@ -339,6 +345,7 @@ export function useProjectLifecycle(input: Input) {
 		timeline.setSpeedRegions([]);
 		timeline.setAnnotationRegions([]);
 		timeline.setAudioRegions([]);
+		timeline.setLayoutEvents(undefined);
 		timeline.setCursorTelemetry([]);
 		timeline.setCursorTelemetrySourcePath(null);
 		timeline.setSourceAudioTrackSettingsByClip({});
